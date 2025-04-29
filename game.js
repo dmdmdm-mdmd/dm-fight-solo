@@ -135,6 +135,7 @@ class Bullet {
 const playerA = new Player(100, '#7FFF00', {
   up: 'w', down: 's', left: 'a', right: 'd', shoot: 'f', block: 'g'
 });
+playerA.hp = 3; // HPを5に設定
 
 // プレイヤーBはCPU、AIで動作
 const playerB = new Player(WIDTH - 100, 'yellow', {
@@ -195,53 +196,44 @@ function handleInput(player, controls) {
 function handleAI(player) {
   let dx = 0, dy = 0;
 
-  // プレイヤーAの弾が近づいてきた場合、避けるまたはガードする
+  const distanceX = playerA.x - player.x;
+  const distanceY = playerA.y - player.y;
+  const distanceToPlayerA = Math.sqrt(distanceX ** 2 + distanceY ** 2);
+
   let avoidBullet = false;
-  let blockChance = 0.5;  // ガードする確率
+  let blockChance = 0.25;
   bullets.forEach(bullet => {
     if (bullet.owner !== player) {
-      const distanceX = Math.abs(bullet.x - player.x);
-      const distanceY = Math.abs(bullet.y - player.y);
-      
-      if (distanceX < 100 && distanceY < 100) {
-        // 弾が近づいてきたら避ける
-        if (bullet.x < player.x) dx = 1; // 弾が左に来ている場合、右に避ける
-        else dx = -1; // 弾が右に来ている場合、左に避ける
-        
-        if (bullet.y < player.y) dy = 1; // 弾が上に来ている場合、下に避ける
-        else dy = -1; // 弾が下に来ている場合、上に避ける
+      const distX = Math.abs(bullet.x - player.x);
+      const distY = Math.abs(bullet.y - player.y);
 
-        // 弾がかなり近い場合にガードを使う
-        if (distanceX < 50 && distanceY < 50 && Math.random() < blockChance) {
+      if (distX < 100 && distY < 100) {
+        dx = bullet.x < player.x ? 1 : -1;
+        dy = bullet.y < player.y ? 1 : -1;
+
+        if (distX < 50 && distY < 50 && Math.random() < blockChance) {
           player.isBlocking = true;
           player.blockStartTime = Date.now();
         }
-
         avoidBullet = true;
       }
     }
   });
 
-  // 弾を避ける動きをしない場合、ランダムに動く
   if (!avoidBullet) {
-    // 少し滑らかな動きにするため、ランダムな動きの頻度を減らす
-    if (Math.random() < 0.1) {
-      dx = Math.random() > 0.5 ? 1 : -1;
-      dy = Math.random() > 0.5 ? 1 : -1;
-    }
+    if (Math.abs(distanceX) > 10) dx = distanceX > 0 ? 1 : -1;
+    if (Math.abs(distanceY) > 10) dy = distanceY > 0 ? 1 : -1;
   }
 
-  // プレイヤーBを動かす
-  player.move(dx, dy);
+  // 速度を半分に
+  player.move(dx * 0.5, dy * 0.5);
 
-  // 相手に向かって弾を撃つ
-  const angleToA = Math.atan2(playerA.y - player.y, playerA.x - player.x);
+  // 発射頻度を抑える（発射確率を減らす）
+  const angleToA = Math.atan2(distanceY, distanceX);
   const shootChance = Math.random();
-
-  // プレイヤーAが近くにいる場合、弾を撃つ確率を上げる
-  if (Math.abs(playerA.x - player.x) < 300 && Math.abs(playerA.y - player.y) < 300 && shootChance > 0.9) {
+  if (distanceToPlayerA < 300 && shootChance > 0.95) {
     bullets.push(new Bullet(player.x, player.y, {
-      x: Math.cos(angleToA), // プレイヤーAに向かって進む
+      x: Math.cos(angleToA),
       y: Math.sin(angleToA)
     }, player));
   }
