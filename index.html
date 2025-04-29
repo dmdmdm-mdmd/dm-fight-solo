@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>対戦ゲーム</title>
+  <style>
+    canvas {
+      background: #222;
+      display: block;
+      margin: 0 auto;
+      border: 2px solid #fff;
+    }
+    body {
+      text-align: center;
+      color: white;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>2人対戦ゲーム</h1>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <p>Player A: W/A/S/D = 移動, F = 攻撃, G = 防御<br>
+     Player B: ↑/←/↓/→ = 移動, / = 攻撃, . = 防御</p>
+
+  <!-- 外部JSファイルを読み込む -->
+  <script src="game.js"></script>
+</body>
+</html>
